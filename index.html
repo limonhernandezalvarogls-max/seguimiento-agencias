@@ -5878,59 +5878,73 @@ async function addDashboardCalendarNote() {
   const marker = normalizeDashboardNoteMarker(markerSelect?.value);
   const visitAgencyId = String(visitAgencySelect?.value || '').trim();
   const visitAgency = visitAgencyId ? getAllAgencies().find(agency => agency.id === visitAgencyId) : null;
+
 const responsibles = getDashboardSelectedResponsibles();
 
 console.log('RESPONSABLES:', responsibles);
 
 if (responsibles.includes('Álvaro')) {
 
-  await supabaseClient
+  console.log('VOY A INSERTAR EN CALENDAR_EVENTS');
+
+  const { data, error } = await supabaseClient
     .from('calendar_events')
     .insert({
       asunto: textValue,
-      responsable: 'alvaro',
+      responsable: 'Álvaro',
       fecha_inicio: dashboardSelectedDate + 'T10:00:00',
       fecha_fin: dashboardSelectedDate + 'T11:00:00',
       outlook_creado: false
     });
 
+  console.log('INSERT DATA', data);
+  console.log('INSERT ERROR', error);
+
 }
 
 const editingId = String(editIdInput?.value || '').trim();
-  const shouldPersistAgency = type === 'VISITA AGENCIAL' || type === 'GESTIONES';
-  if (!textValue) {
-    toast('Escribe una anotación antes de guardar', 'warning');
-    return;
-  }
-  if (shouldPersistAgency && !visitAgencyId) {
-    toast('Selecciona la agencia asociada a la gestión', 'warning');
+const shouldPersistAgency = type === 'VISITA AGENCIAL' || type === 'GESTIONES';
+
+if (!textValue) {
+  toast('Escribe una anotación antes de guardar', 'warning');
+  return;
+}
+
+if (shouldPersistAgency && !visitAgencyId) {
+  toast('Selecciona la agencia asociada a la gestión', 'warning');
+  return;
+}
+
+if (editingId) {
+  const note = getDashboardNoteById(editingId);
+
+  if (!note) {
+    toast('No se encontró la anotación a editar', 'warning');
+    clearDashboardCalendarDraft();
     return;
   }
 
-  if (editingId) {
-    const note = getDashboardNoteById(editingId);
-    if (!note) {
-      toast('No se encontró la anotación a editar', 'warning');
-      clearDashboardCalendarDraft();
-      return;
-    }
-    note.date = dashboardSelectedDate;
-    note.type = type;
-    note.marker = marker;
-    note.agencyId = shouldPersistAgency ? visitAgencyId : '';
-    note.agencyName = shouldPersistAgency ? (visitAgency?.name || '') : '';
-    note.responsibles = responsibles;
-    note.text = textValue;
-    note.updatedAt = new Date().toISOString();
-    saveDB();
-    await flushSharedWrite(true);
-    clearDashboardCalendarDraft();
-    renderDashboardCalendarBlock();
-    renderDashboardPriorityChart(getAllIssues(), getAllAgencies());
-    updateBadges();
-    toast('Anotación actualizada', 'success');
-    return;
-  }
+  note.date = dashboardSelectedDate;
+  note.type = type;
+  note.marker = marker;
+  note.agencyId = shouldPersistAgency ? visitAgencyId : '';
+  note.agencyName = shouldPersistAgency ? (visitAgency?.name || '') : '';
+  note.responsibles = responsibles;
+  note.text = textValue;
+  note.updatedAt = new Date().toISOString();
+
+  saveDB();
+  await flushSharedWrite(true);
+
+  clearDashboardCalendarDraft();
+  renderDashboardCalendarBlock();
+  renderDashboardPriorityChart(getAllIssues(), getAllAgencies());
+  updateBadges();
+
+toast('Anotación actualizada', 'success');
+return;
+
+}
 
   db.dashboard.calendarNotes.push({
     id: uid(),
