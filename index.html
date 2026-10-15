@@ -5878,9 +5878,25 @@ async function addDashboardCalendarNote() {
   const marker = normalizeDashboardNoteMarker(markerSelect?.value);
   const visitAgencyId = String(visitAgencySelect?.value || '').trim();
   const visitAgency = visitAgencyId ? getAllAgencies().find(agency => agency.id === visitAgencyId) : null;
-  const responsibles = getDashboardSelectedResponsibles();
-  console.log('RESPONSABLES:', responsibles);
-  const editingId = String(editIdInput?.value || '').trim();
+const responsibles = getDashboardSelectedResponsibles();
+
+console.log('RESPONSABLES:', responsibles);
+
+if (responsibles.includes('Álvaro')) {
+
+  await supabaseClient
+    .from('calendar_events')
+    .insert({
+      asunto: textValue,
+      responsable: 'alvaro',
+      fecha_inicio: dashboardSelectedDate + 'T10:00:00',
+      fecha_fin: dashboardSelectedDate + 'T11:00:00',
+      outlook_creado: false
+    });
+
+}
+
+const editingId = String(editIdInput?.value || '').trim();
   const shouldPersistAgency = type === 'VISITA AGENCIAL' || type === 'GESTIONES';
   if (!textValue) {
     toast('Escribe una anotación antes de guardar', 'warning');
