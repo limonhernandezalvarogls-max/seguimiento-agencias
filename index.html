@@ -5879,6 +5879,7 @@ async function addDashboardCalendarNote() {
   const visitAgencyId = String(visitAgencySelect?.value || '').trim();
   const visitAgency = visitAgencyId ? getAllAgencies().find(agency => agency.id === visitAgencyId) : null;
   const responsibles = getDashboardSelectedResponsibles();
+  console.log('RESPONSABLES:', responsibles);
   const editingId = String(editIdInput?.value || '').trim();
   const shouldPersistAgency = type === 'VISITA AGENCIAL' || type === 'GESTIONES';
   if (!textValue) {
